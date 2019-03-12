@@ -30,9 +30,11 @@ function(err){
      .data(selectedPeople)
      .enter()
      .append("rect")
+     .attr("fill", "blue")
+     .attr("width", barWidth)
+     .attr("height", function(person){return person.grade})
      .attr("x", function(d,i)
      { return i*barWidth;})
-     .attr("y",function(person)
-     { console.log("in function", person.grade);
-       return height - person.grade;})
+     .attr("y",0);
+
 }

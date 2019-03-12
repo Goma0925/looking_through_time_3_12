@@ -24,13 +24,15 @@ function(err){
   var svg = d3.select(idname)
               .attr("height", height)
               .attr("width", width);
+  var selectedDay = data[day-1];
+  var selectedPeople = selectedDay.grades;
   svg.selectAll("rect")
-     .data(data, function(d) {return d.grades[day];})
+     .data(selectedPeople)
      .enter()
      .append("rect")
      .attr("x", function(d,i)
      { return i*barWidth;})
-     .attr("y",function(d)
-     { console.log("in function", d)
-       return height - d.grade;})
+     .attr("y",function(person)
+     { console.log("in function", person.grade);
+       return height - person.grade;})
 }

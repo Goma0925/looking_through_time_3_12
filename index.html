@@ -12,15 +12,18 @@
     <link href="style.css" type="text/css" rel="stylesheet">
   </head>
   <body>
+    <h1>Student Grades Visualization</h1>
     <div class="content">
       <svg id="graph"> </svg>
+      <div id="tooltip" class="hidden">
+        <p><strong id="tooltip-name"></strong></p>
+        <p><span id="tooltip-value">100</span>%</p>
+        <br>
+      </div>
     </div>
-    <div id="tooltip" class="hidden">
-      <p><strong> Exam Grade </strong></p>
-      <p><span id="value">100</span>%</p>
-    </div>
-      <button type="button" id="prev" name="button">Previous</button>
-      <div id="day-section">Day <font id="day">1</font></div>
-      <button type="button" id="next" name="button">Next</button>
+    <button type="button" id="prev" class="button" name="button"><font class="button-text">Previous</font></button>
+    <center><div id="day-section">Day <font id="day">1</font></div></center>
+    <button type="button" id="next" class="button" name="button"><font class="button-text">Next</font></button>
+    <div class="" id="data-modal"></div>
   </body>
 </html>

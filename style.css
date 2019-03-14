@@ -1,0 +1,43 @@
+html{
+  background-color: #B09398;
+}
+
+.content{
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin-left: 10%;
+  margin-right: 10%;
+  border-radius: 20px;
+}
+
+#graph{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.graph-border{
+  fill: #EBFCFB;
+}
+
+svg{
+  background-color: #CEDFD9;
+  border-radius: 10px;
+}
+
+#prev{
+  position: absolute;
+  top: 35%;
+  margin-left: 5%;
+  height: 50px;
+  width: 70px;
+}
+
+#next{
+  position: absolute;
+  top: 35%;
+  right: 0;
+  margin-right: 5%;
+  height: 50px;
+  width: 70px;
+}

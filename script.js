@@ -1,36 +1,29 @@
 var dataP = d3.json("gradeData.json");
 
-dataP.then(function(data)
-{
-    console.log("data",data)
-    drawChart(data,"#graph",1);
-},
-function(err){
-  console.log(err);
-});
+//Graph settings
+var screenSettings = {
+width:500,
+height:400
+};
 
+var marginSettings = {
+  top:20,
+  bottom: 10,
+  left: 20,
+  right: 100
+}
 
-  var drawChart = function(data,svgSelector,day)
+//Function settings
+  var drawChart = function(data,svgSelector,day, screen, margins)
 {
+
   //Draw a barchart using the specified day's info
-  var screen = {
-  width:500,
-  height:400
-  };
-
-  var margins = {
-    top:20,
-    bottom: 10,
-    left: 20,
-    right: 100
-  }
 
   var selectedDay = data[day-1];
   var selectedPeople = selectedDay.grades;
   console.log("-----------------------");
   console.log("Day:", day);
   console.log("Data:", selectedDay);
-
 
   var graphWidth  = screen.width - margins.left - margins.right;
   var graphHeight = screen.height - margins.top - margins.bottom;
@@ -42,7 +35,8 @@ function(err){
 
   var yScale = d3.scaleLinear()
                 .domain([0, 100])
-                .range([margins.top, graphHeight])
+                .range([margins.bottom, graphHeight - 15])
+
 
   var colorScale = d3.scaleOrdinal(d3.schemeAccent);
 
@@ -67,25 +61,35 @@ function(err){
                     .append("g")
                     .classed("graph-data", true);
 
+  graphBars =graphData.selectAll("rect")
+                       .data(selectedPeople)
+                       .enter()
+                       .append("rect")
+                       .attr("width", barWidth)
+                       .attr("height", function(person){
+                                        console.log(person.name + "'s grade:" + person.grade);
+                                        return yScale(person.grade)})
+                       .attr("x", function(d,i)
+                       { return margins.left + i*barWidth + (graphWidth/16);})//adjusting the center of bar
+                       .attr("y", function(person){
+                                        return graphHeight + margins.top- yScale(person.grade) - 2})
+                      .attr("fill", function(person){return colorScale(person.name)})
+                      .style("stroke", "#EBFCFB")
+                      .style("stroke-width", 2)
+                      .classed("data-bar", true);
 
-  console.log("content", graphData);
-
-  graphData.selectAll("rect")
-       .data(selectedPeople)
-       .enter()
-       .append("rect")
-       .attr("fill", "blue")
-       .attr("width", barWidth)
-       .attr("height", function(person){
-                        console.log(person.name + "'s grade:" + person.grade);
-                        return person.grade})
-       .attr("x", function(d,i)
-       { return margins.left + i*barWidth + (graphWidth/16);})//adjusting the center of bar
-       .attr("y", function(person){
-                        return graphHeight + margins.top- person.grade - 1})
-      .attr("fill", function(person){return colorScale(person.name)})
-      .style("stroke", "white")
-      .style("stroke-width", 2)
+  graphText = graphData.selectAll("text")
+                       .data(selectedPeople)
+                       .enter()
+                       .append("text")
+                       .attr("height", function(person){
+                                        console.log(person.name + "'s grade:" + person.grade);
+                                        return person.grade})
+                       .attr("x", function(d,i)
+                       { return margins.left + i*barWidth + (graphWidth/16) + (barWidth/2);})//adjusting the center of bar
+                       .attr("y", function(person){
+                                        return graphHeight + margins.top- yScale(person.grade) - 1})
+                      .text(function(person){return person.grade});
 
   legend = d3.select(svgSelector)
               .append("g")
@@ -94,9 +98,8 @@ function(err){
                                               + ",0)")
               .classed("legend", true);
 
-  console.log("Width", legendColorBarWidth);
   legendLines = legend.selectAll("g")
-                      .data(selectedPeople, function(d){console.log("Data;", d); return d;})
+                      .data(selectedPeople)
                       .enter()
                       .append("g")
                       .classed("legend-line", true);
@@ -106,7 +109,7 @@ function(err){
               .attr("y", function(person, i){return i*legendLineHeight + i*legendLineMargin + 30})
               .attr("width", legendColorBarWidth)
               .attr("height", legendLineHeight)
-              .attr("fill", function(person){console.log("Working;", person);return colorScale(person.name)})
+              .attr("fill", function(person){return colorScale(person.name)})
 
   legendLines.append("text")
             .text(function(person){return person.name;})
@@ -114,5 +117,125 @@ function(err){
             .attr("y", function(person, i){return i*legendLineHeight + i*legendLineMargin + 38})
             .attr("font-size", legendLineHeight)
 
+}
+
+//Event listener functions defined here
+var updateChart = function(data,svgSelector,day, screen, margins){
+  var selectedDay = data[day-1];
+  var selectedPeople = selectedDay.grades;
+  console.log("-----------------------");
+  console.log("Day:", day);
+  console.log("Data:", selectedDay);
+
+  //organize below----------
+  var yScale = d3.scaleLinear()
+                .domain([0, 100])
+                .range([margins.bottom, graphHeight - 15])
+
+  var graphWidth  = screen.width - margins.left - margins.right;
+  var graphHeight = screen.height - margins.top - margins.bottom;
+  var legendLineWidth = 10;
+  var legendLineHeight = 10;
+  var legendLineMargin = 5;
+  var legendColorBarWidth = 30;
+  var borderWidth = 1;
+
+  var colorScale = d3.scaleOrdinal(d3.schemeAccent);
+
+  var barWidth = (graphWidth - (graphWidth/8)) /selectedPeople.length;
+  //----------Organize above
+
+  graphData = d3.select(svgSelector)
+
+
+  graphBars = graphData.selectAll(".data-bar")
+                       .data(selectedPeople)
+                       .transition()
+                       .duration(1500)
+                       .attr("width", barWidth)
+                       .attr("height", function(person){
+                                        console.log(person.name + "'s grade:" + person.grade);
+                                        return yScale(person.grade)})
+                       .attr("x", function(d,i)
+                       { return margins.left + i*barWidth + (graphWidth/16);})//adjusting the center of bar
+                       .attr("y", function(person){
+                                        return graphHeight + margins.top- yScale(person.grade) - 2})
+                      .attr("fill", function(person){return colorScale(person.name)})
+                      .style("stroke", "#EBFCFB")
+                      .style("stroke-width", 2)
+                      .classed("data-bar", true)
+
+  graphText = graphData.selectAll("text")
+                       .data(selectedPeople)
+                       .transition()
+                       .duration(1500)
+                       .attr("height", function(person){
+                                        console.log(person.name + "'s grade:" + person.grade);
+                                        return person.grade})
+                       .attr("x", function(d,i)
+                       { return margins.left + i*barWidth + (graphWidth/16) + (barWidth/2);})//adjusting the center of bar
+                       .attr("y", function(person){
+                                        return graphHeight + margins.top- person.grade - 1})
+                      .text(function(person){return person.grade});
+
 
 }
+
+var updateDay = function(flag, minDay, maxDay){
+  var dayString = document.getElementById("day").innerText;
+  if (flag == "next")
+  {
+    if (parseInt(dayString) < maxDay)
+    {
+      dayString = parseInt(dayString) + 1;
+      document.getElementById("day").innerText = dayString;
+    }
+  }
+  else if (flag == "prev")
+  {
+    if (parseInt(dayString) > minDay)
+    {
+      dayString = parseInt(dayString) - 1;
+      document.getElementById("day").innerText = dayString;
+    }
+  }
+
+  return parseInt(dayString)
+}
+
+//Event handlers defined here
+var initEventListeners = function(){
+
+  //next botton
+  d3.select("#next")
+    .on("click", function(d){
+      console.log("Next button clicked");
+      dataP.then(function(data)
+      {
+          var day = updateDay("next", 1, 10);
+          updateChart(data,"#graph", day, screenSettings, marginSettings);
+      });
+    });
+
+  //Previous button
+    d3.select("#prev")
+      .on("click", function(d){
+        console.log("Prev button clicked");
+        dataP.then(function(data)
+        {
+            var day = updateDay("prev", 1, 10);
+            updateChart(data,"#graph", day, screenSettings, marginSettings);
+        });
+      });
+//--------------------
+}
+
+//Main process
+var initGraph = function(){
+  dataP.then(function(data)
+  {
+      drawChart(data,"#graph",3, screenSettings, marginSettings);
+      initEventListeners();
+  });
+}
+initGraph();

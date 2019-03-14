@@ -8,8 +8,8 @@ height:400
 
 var marginSettings = {
   top:20,
-  bottom: 10,
-  left: 20,
+  bottom: 30,
+  left: 100,
   right: 100
 }
 
@@ -33,20 +33,45 @@ var marginSettings = {
   var legendColorBarWidth = 30;
   var borderWidth = 1;
 
+  var xScale = d3.scaleLinear()
+                .domain([0, 10])
+                .range([0, graphWidth])
+
   var yScale = d3.scaleLinear()
                 .domain([0, 100])
-                .range([margins.bottom, graphHeight - 15])
+                .range([0, graphHeight - 15])
 
+                console.log("TESTING yScale-------");
+                console.log("80 =", yScale(80))
+
+  var yAxisScale = d3.scaleLinear()
+                .domain([0, 100])
+                .range([graphHeight - 15, 0]);
+
+  var xAxis = d3.axisBottom().scale(xScale);
+  var yAxis = d3.axisLeft().scale(yAxisScale);
 
   var colorScale = d3.scaleOrdinal(d3.schemeAccent);
 
   var barWidth = (graphWidth - (graphWidth/8)) /selectedPeople.length;
+  //
   var graphSVG = d3.select(svgSelector)
               .attr("width", screen.width)
               .attr("height", screen.height);
 
-  graphBorder = d3.select(svgSelector)
-                    .append("rect")
+  xAxisGraphic = graphSVG.append("g")
+                      .call(xAxis)
+                      .attr("transform", function(){
+                        return "translate(" + margins.left + "," + (graphHeight + margins.top) + ")";
+                        });
+
+  yAxisGraphic = graphSVG.append("g")
+                      .call(yAxis)
+                      .attr("transform", function(){
+                        return "translate(" + margins.left + "," + (margins.top + 15) + ")";
+                        });
+
+  graphBorder = graphSVG.append("rect")
                     .attr("border-style", "solid")
                     .attr("x", margins.left)
                     .attr("y", margins.top)
@@ -57,8 +82,7 @@ var marginSettings = {
                     .style("stroke-width", borderWidth)
                     .classed("graph-border", true);
 
-  graphData = d3.select(svgSelector)
-                    .append("g")
+  graphData = graphSVG.append("g")
                     .classed("graph-data", true);
 
   graphBars =graphData.selectAll("rect")
@@ -76,7 +100,26 @@ var marginSettings = {
                       .attr("fill", function(person){return colorScale(person.name)})
                       .style("stroke", "#EBFCFB")
                       .style("stroke-width", 2)
+                      //.append("title")
+                      //.text(function(person){return person.grade;})
+                      .on("mouseover", function(person, i){
+                        var xPosition = margins.left + i*barWidth + (graphWidth/16);
+                        var yPosition = graphHeight + margins.top- yScale(person.grade) - 2;
+
+                        d3.select("#tooltip")
+                        .style("left", xPosition + "px")
+                        .style("top", yPosition + "px")
+                        .select("#grade")
+                        .text(person.grade)
+
+                      d3.select("#tooltip").classed("hidden", false);
+                      })
+
+                      .on("mouseout", function() {
+                        d3.select("#tooltip").classed("hidden", true);
+                      })
                       .classed("data-bar", true);
+
 
   graphText = graphData.selectAll("text")
                        .data(selectedPeople)
@@ -89,7 +132,8 @@ var marginSettings = {
                        { return margins.left + i*barWidth + (graphWidth/16) + (barWidth/2);})//adjusting the center of bar
                        .attr("y", function(person){
                                         return graphHeight + margins.top- yScale(person.grade) - 1})
-                      .text(function(person){return person.grade});
+                      .text(function(person){return person.grade})
+                      .classed("graph-text", true);
 
   legend = d3.select(svgSelector)
               .append("g")
@@ -127,11 +171,7 @@ var updateChart = function(data,svgSelector,day, screen, margins){
   console.log("Day:", day);
   console.log("Data:", selectedDay);
 
-  //organize below----------
-  var yScale = d3.scaleLinear()
-                .domain([0, 100])
-                .range([margins.bottom, graphHeight - 15])
-
+  //organize below---------
   var graphWidth  = screen.width - margins.left - margins.right;
   var graphHeight = screen.height - margins.top - margins.bottom;
   var legendLineWidth = 10;
@@ -139,6 +179,24 @@ var updateChart = function(data,svgSelector,day, screen, margins){
   var legendLineMargin = 5;
   var legendColorBarWidth = 30;
   var borderWidth = 1;
+
+  var xScale = d3.scaleLinear()
+                .domain([0, 10])
+                .range([0, graphWidth])
+
+  var yScale = d3.scaleLinear()
+                .domain([0, 100])
+                .range([0, graphHeight - 15])
+
+                console.log("TESTING yScale-------");
+                console.log("80 =", yScale(80))
+
+  var yAxisScale = d3.scaleLinear()
+                .domain([0, 100])
+                .range([graphHeight - 15, 0]);
+
+  var xAxis = d3.axisBottom().scale(xScale);
+  var yAxis = d3.axisLeft().scale(yAxisScale);
 
   var colorScale = d3.scaleOrdinal(d3.schemeAccent);
 
@@ -155,27 +213,27 @@ var updateChart = function(data,svgSelector,day, screen, margins){
                        .attr("width", barWidth)
                        .attr("height", function(person){
                                         console.log(person.name + "'s grade:" + person.grade);
+                                        console.log("Height scaled:", yScale(person.grade));
                                         return yScale(person.grade)})
                        .attr("x", function(d,i)
                        { return margins.left + i*barWidth + (graphWidth/16);})//adjusting the center of bar
-                       .attr("y", function(person){
+                       .attr("y", function(person){ console.log("y-----------------");
+                                                    console.log("person.grade;", person.grade);
+                                                    console.log("yscale:", yScale(person.grade));
                                         return graphHeight + margins.top- yScale(person.grade) - 2})
-                      .attr("fill", function(person){return colorScale(person.name)})
-                      .style("stroke", "#EBFCFB")
-                      .style("stroke-width", 2)
-                      .classed("data-bar", true);
+                      .attr("fill", function(person){return colorScale(person.name)});
 
-  graphText = graphData.selectAll("text")
+  graphText = graphData.selectAll(".graph-text")
                        .data(selectedPeople)
                        .transition()
                        .duration(1500)
                        .attr("height", function(person){
                                         console.log(person.name + "'s grade:" + person.grade);
-                                        return person.grade})
+                                        return yScale(person.grade)})
                        .attr("x", function(d,i)
                        { return margins.left + i*barWidth + (graphWidth/16) + (barWidth/2);})//adjusting the center of bar
                        .attr("y", function(person){
-                                        return graphHeight + margins.top- person.grade - 1})
+                                        return graphHeight + margins.top- yScale(person.grade) - 1})
                       .text(function(person){return person.grade});
 
 
@@ -213,7 +271,7 @@ var initEventListeners = function(){
       dataP.then(function(data)
       {
           var day = updateDay("next", 1, 10);
-          updateChart(data,"#graph", day, screenSettings, marginSettings);
+            updateChart(data,"#graph", day, screenSettings, marginSettings);
       });
     });
 
